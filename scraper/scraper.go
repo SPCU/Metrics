@@ -1,8 +1,8 @@
 package scraper
 
 import (
-	"bytes"
 	"fmt"
+	"github.com/SPCU/Metrics/parser"
 	"io/ioutil"
 	"net/http"
 
@@ -40,6 +40,7 @@ type Config struct {
 // that it can gather the prometheus metrics and push them to the cloud.
 type MetricScraper struct {
 	Config Config
+	Parser parser.Parser
 }
 
 // Addr returns the url of the metrics
@@ -67,31 +68,11 @@ func (ms *MetricScraper) Gather(jc JobConfig) (string, error) {
 	return string(body), nil
 }
 
-// PushMetrics sends the text format of metrics to the server
-func (ms *MetricScraper) PushMetrics(host string, orgUUID string, deviceUUID string) {
-	for _, jobConfig := range ms.Config.Jobs {
-		// Gather the metrics
-		metrics, err := ms.Gather(jobConfig)
-		if err != nil {
-			log.Warn(err)
-			continue
-		}
-
-		// Push
-		requestBody := bytes.NewBufferString(metrics)
-		url := fmt.Sprintf("http://%s/orgs/%s/devices/%s/apps/%s/metrics", host, orgUUID, deviceUUID, jobConfig.Name)
-		_, err = http.Post(url, "text/plain", requestBody)
-		if err != nil {
-			log.Warn(err)
-			continue
-		}
-	}
-}
-
 // NewScraper pulls metrics from multiple sources
-func NewScraper(cfg Config) (*MetricScraper, error) {
+func NewScraper(cfg Config, scrappingParser parser.Parser) (*MetricScraper, error) {
 	return &MetricScraper{
 		Config: cfg,
+		Parser: scrappingParser,
 	}, nil
 }
 

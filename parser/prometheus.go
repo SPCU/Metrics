@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	spcuLog "github.com/SPCU/Libraries/log"
-	"github.com/SPCU/Metrics/models"
+
+	"github.com/SPCU/Api/metrics/models"
 	"strconv"
 	"strings"
 	"time"
@@ -56,7 +57,7 @@ func (p PrometheusMetricParser) ParseText(metricText string) ([]models.TimeSerie
 
 		// Parse the metric name and tags
 		var metricName string
-		var tags []models.Tag
+		var tags []*models.Tag
 		if strings.Contains(metricLine, "{") {
 			// Parse the metric name
 			splitMetricID := strings.Split(metricLine, "{")
@@ -84,7 +85,7 @@ func (p PrometheusMetricParser) ParseText(metricText string) ([]models.TimeSerie
 			// Create the tags
 			for _, stringTag := range strings.Split(stringMetricTagsWithCommas, ", ") {
 				splitTag := strings.Split(stringTag, "=")
-				tags = append(tags, models.Tag{
+				tags = append(tags, &models.Tag{
 					Key:   splitTag[0],
 					Value: splitTag[1][1:len(splitTag[1])],
 				})
@@ -95,8 +96,8 @@ func (p PrometheusMetricParser) ParseText(metricText string) ([]models.TimeSerie
 		timeSeries = append(timeSeries, models.TimeSeries{
 			Name: metricName,
 			Tags: tags,
-			DataPoint: models.DataPoint{
-				Timestamp: time.Now().UnixNano(),
+			DataPoint: &models.DataPoint{
+				Timestamp: time.Now().UnixMilli(),
 				Value:     value,
 			},
 		})
