@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	spcuLog "github.com/SPCU/Libraries/log"
 	"gopkg.in/yaml.v3"
+
+	spculog "github.com/SPCU/Libraries/log"
 )
 
-var log, _ = spcuLog.NewLogger(spcuLog.SpcuLoggerConfig{})
+var log, _ = spculog.NewLogger(spculog.SpcuLoggerConfig{})
 
 type GlobalConfig struct {
 	ScrapeInterval     string            `yaml:"scrape_interval"`
@@ -66,6 +67,7 @@ func (ms *MetricScraper) Gather(jc JobConfig) (string, error) {
 	return string(body), nil
 }
 
+// PushMetrics sends the text format of metrics to the server
 func (ms *MetricScraper) PushMetrics(host string, orgUUID string, deviceUUID string) {
 	for _, jobConfig := range ms.Config.Jobs {
 		// Gather the metrics
@@ -86,13 +88,15 @@ func (ms *MetricScraper) PushMetrics(host string, orgUUID string, deviceUUID str
 	}
 }
 
+// NewScraper pulls metrics from multiple sources
 func NewScraper(cfg Config) (*MetricScraper, error) {
 	return &MetricScraper{
 		Config: cfg,
 	}, nil
 }
 
-func ReadScraperConfigFile(path string) (Config, error) {
+// ReadScraperYAMLConfigFile read the scraper config from a YAML file
+func ReadScraperYAMLConfigFile(path string) (Config, error) {
 	// Read metrics config file (YAML file)
 	cfgFile, err := ioutil.ReadFile(path)
 	if err != nil {
