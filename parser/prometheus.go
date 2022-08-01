@@ -21,7 +21,7 @@ func (p PrometheusMetricParser) ParseText(metricText string) ([]models.TimeSerie
 	var metricLines []string
 	textLines := strings.Split(metricText, "\n")
 	for _, line := range textLines {
-		if string(line[0]) != "#" {
+		if len(line) > 0 && string(line[0]) != "#" {
 			metricLines = append(metricLines, line)
 		}
 	}
@@ -58,6 +58,8 @@ func (p PrometheusMetricParser) ParseText(metricText string) ([]models.TimeSerie
 		// Parse the metric name and tags
 		var metricName string
 		var tags []*models.Tag
+
+		// Check if it has any tags
 		if strings.Contains(metricLine, "{") {
 			// Parse the metric name
 			splitMetricID := strings.Split(metricLine, "{")
@@ -87,9 +89,12 @@ func (p PrometheusMetricParser) ParseText(metricText string) ([]models.TimeSerie
 				splitTag := strings.Split(stringTag, "=")
 				tags = append(tags, &models.Tag{
 					Key:   splitTag[0],
-					Value: splitTag[1][1:len(splitTag[1])],
+					Value: splitTag[1][1 : len(splitTag[1])-1],
 				})
 			}
+		} else {
+			// Then easily parse the metric name as there is not any tag
+			metricName = splitLine[0]
 		}
 
 		// Create and append the TimeSeries
